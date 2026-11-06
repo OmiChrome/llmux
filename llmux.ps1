@@ -440,7 +440,7 @@ function Cmd-Pack($a) {
     $path = $o.OutAbs
     if ($pn) { $path = [IO.Path]::ChangeExtension($o.OutAbs, $null).TrimEnd('.') + ".part$p." + $o.Fmt }
     [IO.File]::WriteAllText($path, $text, $UTF8)
-    $shown = $o.Out; if ($pn) { $shown = [IO.Path]::GetFileName($path) }
+    $shown = $o.Out; if ($pn) { $shown = [IO.Path]::ChangeExtension($o.Out, $null).TrimEnd('.') + ".part$p." + $o.Fmt }
     Say ((Green '✓ wrote ') + (Bold $shown) + (Dim "  ($(Human $UTF8.GetByteCount($text)))"))
   }
   if (-not $o.Stdout) { Say ((Dim '  next: paste it into your LLM. Save its reply, then: ') + (Cyan 'llmux apply reply.txt')) }

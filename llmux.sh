@@ -91,7 +91,13 @@ match_any() {   # $1 = space-separated globs, $2 = relpath
   return 1
 }
 
-is_text() { grep -qI '' "$1" 2>/dev/null; }   # grep -I = treat binary as no match
+is_text() {   # same rule as llmux.py: no NUL and <10% control bytes in the first 8 KB
+  local n z c
+  n=$(head -c 8192 "$1" | wc -c | tr -d ' '); [ "$n" -eq 0 ] && return 0
+  z=$(head -c 8192 "$1" | tr -cd '\000' | wc -c | tr -d ' '); [ "$z" -gt 0 ] && return 1
+  c=$(head -c 8192 "$1" | tr -cd '\001-\010\016-\037' | wc -c | tr -d ' ')
+  [ $((c * 10)) -le "$n" ]
+}
 is_utf8() { command -v iconv >/dev/null 2>&1 || return 0; iconv -f UTF-8 -t UTF-8 "$1" >/dev/null 2>&1; }
 is_pack() { head -c 600 "$1" 2>/dev/null | grep -qE '^<llmux version=|generated: .* by llmux [0-9]'; }
 
@@ -479,8 +485,8 @@ match($0, /^[ \t>*#`_-]*(FILE|DELETE)[ \t]*:/) {
   if (head ~ /DELETE/) { sb = ""; rb = ""; save = path; path = p; start = NR; emit("delete"); path = save }
   else path = p
   next }
-/^[ \t]*<<<<<+[ \t]*SEARCH[ \t]*$/ { st = 1; sb = ""; rb = ""; sc = 0; rc = 0; start = NR + 1; next }
-/^[ \t]*<<<<<+[ \t]*FULL[ \t]*$/ { st = 3; sb = ""; rb = ""; rc = 0; start = NR + 1; next }
+/^[ \t]*<<<<<+[ \t]*SEARCH[ \t]*$/ { st = 1; sb = ""; rb = ""; sc = 0; rc = 0; start = NR; next }
+/^[ \t]*<<<<<+[ \t]*FULL[ \t]*$/ { st = 3; sb = ""; rb = ""; rc = 0; start = NR; next }
 END { if (st) { sb = ""; rb = ""; emit("broken") } }'
 
 PARSE_PACK_AWK='
@@ -689,7 +695,7 @@ cmd_apply() {
   fi
   local bak=""
   if [ "$nobak" = 0 ]; then
-    bak="$aroot/.llmux-backup/$(date +%Y%m%d-%H%M%S)-$$"
+    bak="$aroot/.llmux-backup/$(date +%Y%m%d-%H%M%S)-$$$RANDOM"
     mkdir -p "$bak"; : > "$bak/.created"
   fi
   local full

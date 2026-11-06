@@ -116,6 +116,16 @@ Cross-checks: bash and PowerShell packs are byte-identical to the Python one (sa
 per-file tokens); packs from each version — and repomix xml — round-trip through every other
 version's `apply`.
 
+Shells tested with the same suite (pack, all formats, depth, limits, split, apply, undo, CRLF, safety):
+
+| version | on |
+|---|---|
+| bash 5.2 + GNU tools | Debian |
+| bash 3.2.57 + busybox (what macOS ships / Alpine) | Docker `bash:3.2` |
+| Windows PowerShell 5.1 | Windows 11 |
+| PowerShell 7.4 | Linux |
+| Python 3.13 / 3.14 | Debian, Windows |
+
 ## License
 
 MIT
