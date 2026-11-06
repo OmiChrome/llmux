@@ -1,0 +1,6 @@
+llmux-*.xml
+llmux-*.md
+llmux-*.txt
+.llmux-backup/
+__pycache__/
+.venv/
